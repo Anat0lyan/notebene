@@ -1,6 +1,6 @@
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
-import type { Pool, PoolClient } from 'pg';
+import type { Pool } from 'pg';
 
 const { Pool: PgPool } = pg;
 

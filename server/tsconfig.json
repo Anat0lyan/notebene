@@ -12,8 +12,10 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "declaration": true,
@@ -21,7 +23,8 @@
     "sourceMap": true
   },
   "include": [
-    "**/*.ts"
+    "**/*.ts",
+    "**/*.js"
   ],
   "exclude": [
     "node_modules",

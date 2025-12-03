@@ -114,20 +114,43 @@ npm run dev
 - ✅ Избранное
 - ✅ Архивация
 
+## Деплой (Production)
+
+### Backend
+
+```bash
+cd server
+npm install --production=false  # Нужны dev зависимости для сборки TypeScript
+npm run build                   # Компиляция TypeScript → JavaScript
+npm start                       # Запуск (использует dist/index.js)
+```
+
+### Frontend
+
+```bash
+cd client
+npm install
+npm run build                   # Создаст статические файлы в client/dist/
+```
+
+Подробные инструкции по деплою: см. [DEPLOY.md](./DEPLOY.md) или краткую шпаргалку [DEPLOY_COMMANDS.md](./DEPLOY_COMMANDS.md)
+
 ## Структура проекта
 
 ```
-├── client/          # Vue.js фронтенд
+├── client/          # Vue.js фронтенд (TypeScript)
 │   ├── src/
 │   │   ├── components/
 │   │   ├── views/
 │   │   ├── stores/
 │   │   ├── router/
-│   │   └── services/
-├── server/          # Express.js бэкенд
-│   ├── models/
+│   │   ├── services/
+│   │   └── types/
+├── server/          # Express.js бэкенд (TypeScript)
 │   ├── routes/
 │   ├── middleware/
-│   └── config/
+│   ├── config/
+│   ├── types/
+│   └── dist/        # Скомпилированные JS файлы (после сборки)
 ```
 
