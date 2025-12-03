@@ -60,9 +60,15 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Tag not found' });
     }
 
-    // Check if new name conflicts with existing tag
+    // Check if new name conflicts with existing tag (only check user's tags)
     if (name && name !== tagExists.name) {
-      const conflictingTag = await queryOne('SELECT * FROM tags WHERE name = $1 AND id != $2', [name, req.params.id]);
+      const conflictingTag = await queryOne(`
+        SELECT t.* FROM tags t
+        INNER JOIN note_tags nt ON t.id = nt.tag_id
+        INNER JOIN notes n ON nt.note_id = n.id
+        WHERE t.name = $1 AND t.id != $2 AND n.user_id = $3
+        LIMIT 1
+      `, [name, req.params.id, req.user.id]);
       if (conflictingTag) {
         return res.status(400).json({ error: 'Tag with this name already exists' });
       }
