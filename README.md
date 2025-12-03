@@ -116,22 +116,30 @@ npm run dev
 
 ## Деплой (Production)
 
-### Backend
+Backend автоматически отдает статические файлы фронтенда в production режиме.
+
+### Полный деплой (Backend отдает Frontend)
 
 ```bash
-cd server
-npm install --production=false  # Нужны dev зависимости для сборки TypeScript
-npm run build                   # Компиляция TypeScript → JavaScript
-npm start                       # Запуск (использует dist/index.js)
-```
-
-### Frontend
-
-```bash
+# 1. Собрать фронтенд
 cd client
 npm install
-npm run build                   # Создаст статические файлы в client/dist/
+npm run build
+
+# 2. Собрать и запустить бэкенд (будет отдавать статику)
+cd ../server
+npm install --production=false
+npm run build
+NODE_ENV=production npm start
 ```
+
+Или используйте скрипт:
+```bash
+./build.sh
+cd server && NODE_ENV=production npm start
+```
+
+**Результат:** Один сервер на порту 3000 обслуживает и API (`/api/*`) и фронтенд.
 
 Подробные инструкции по деплою: см. [DEPLOY.md](./DEPLOY.md) или краткую шпаргалку [DEPLOY_COMMANDS.md](./DEPLOY_COMMANDS.md)
 

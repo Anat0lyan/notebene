@@ -1,35 +1,35 @@
 # Команды для деплоя - Краткая шпаргалка
 
-## 🚀 Быстрый старт
+## 🚀 Быстрый старт (Backend отдает Frontend)
 
-### Backend (Production)
-
-```bash
-cd server
-npm install --production=false
-npm run build
-npm start
-```
-
-### Frontend (Production)
+### Полный деплой - Backend с Frontend
 
 ```bash
-cd client
-npm install
-npm run build
-# Файлы в client/dist/ готовы к деплою
+# 1. Собрать фронтенд
+cd client && npm install && npm run build
+
+# 2. Собрать и запустить бэкенд (будет отдавать статику)
+cd ../server && npm install --production=false && npm run build && NODE_ENV=production npm start
 ```
 
-## 📋 Полный деплой (одной строкой)
+Или используйте скрипт:
+```bash
+./build.sh
+cd server && NODE_ENV=production npm start
+```
 
-### Backend
+**Результат:** Один сервер на порту 3000 обслуживает и API (`/api/*`) и фронтенд.
+
+## 📋 Деплой по отдельности
+
+### Backend только (без фронтенда)
 ```bash
 cd server && npm install --production=false && npm run build && npm start
 ```
 
-### Frontend
+### Frontend отдельно (для разработки)
 ```bash
-cd client && npm install && npm run build
+cd client && npm install && npm run dev
 ```
 
 ## 🔧 Development режим

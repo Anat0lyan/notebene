@@ -2,49 +2,56 @@
 
 ## Подготовка к деплою
 
-### 1. Backend (Production)
+### 1. Полный деплой (Backend отдает Frontend)
+
+Backend автоматически отдает статические файлы фронтенда в production режиме.
 
 ```bash
-# Перейдите в директорию backend
-cd server
-
-# Установите зависимости (включая production)
-npm install --production=false
-
-# Соберите TypeScript код
+# 1. Соберите фронтенд
+cd client
+npm install
 npm run build
 
-# Запустите приложение
+# 2. Соберите и запустите бэкенд
+cd ../server
+npm install --production=false
+npm run build
 npm start
 ```
 
-Или одной командой:
+Или используйте скрипт сборки:
 ```bash
-cd server && npm install --production=false && npm run build && npm start
+./build.sh
+cd server
+npm start
 ```
 
-### 2. Frontend (Production)
+**Важно:** Backend отдает статику только если:
+- `NODE_ENV=production` или
+- `SERVE_STATIC=true`
+
+### 2. Backend только (без фронтенда)
+
+Если нужно запустить только API без фронтенда:
 
 ```bash
-# Перейдите в директорию frontend
-cd client
-
-# Установите зависимости
-npm install
-
-# Соберите production версию
+cd server
+npm install --production=false
 npm run build
-
-# Проверьте сборку локально (опционально)
-npm run preview
+npm start
 ```
 
-Или одной командой:
+### 3. Frontend отдельно (для разработки)
+
+Для разработки фронтенд можно запускать отдельно:
+
 ```bash
-cd client && npm install && npm run build
+cd client
+npm install
+npm run dev
 ```
 
-### 3. Полный деплой (оба сервиса)
+### 4. Полный деплой (старый способ - раздельно)
 
 ```bash
 # Backend
@@ -91,32 +98,37 @@ VITE_API_BASE_URL=https://your-backend-domain.com/api
 ### Development (разработка)
 
 ```bash
-# Backend
+# Backend (API только)
 cd server
 npm install
 npm run dev
 
-# Frontend  
+# Frontend (отдельно, подключается к backend на порту 3000)
 cd client
 npm install
 npm run dev
 ```
 
-### Production (продакшн)
+### Production (продакшн) - Backend отдает Frontend
 
 ```bash
-# Backend
-cd server
-npm install --production=false  # Нужны dev зависимости для сборки TS
-npm run build                   # Компиляция TypeScript
-npm start                       # Запуск скомпилированного кода
-
-# Frontend
+# 1. Собрать фронтенд
 cd client
 npm install
-npm run build                   # Сборка статических файлов
-# Файлы будут в client/dist/
+npm run build
+
+# 2. Собрать и запустить бэкенд (будет отдавать статику)
+cd ../server
+npm install --production=false
+npm run build
+NODE_ENV=production npm start
+
+# Или использовать скрипт сборки
+./build.sh
+cd server && NODE_ENV=production npm start
 ```
+
+**Результат:** Один сервер на порту 3000 обслуживает и API (`/api/*`) и фронтенд.
 
 ## Структура после сборки
 
