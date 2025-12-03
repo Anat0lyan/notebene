@@ -30,9 +30,9 @@ router.get('/', async (req, res) => {
     
     let queryText = `
       SELECT n.id, n.user_id, n.title, n.content, n.created_at, n.updated_at, n.is_archived, n.is_favorite,
-        STRING_AGG(t.id::text || ':' || t.name || ':' || COALESCE(t.color, ''), ',' ORDER BY t.name) as tags_data
+        STRING_AGG(t.id::text || ':' || t.name || ':' || COALESCE(t.color, ''), ',' ORDER BY t.name) FILTER (WHERE t.id IS NOT NULL) as tags_data
       FROM notes n
-      LEFT JOIN note_tags nt ON n.id = nt.note_id
+      LEFT JOIN note_tags nt ON n.id = nt.note_id AND nt.user_id = $1
       LEFT JOIN tags t ON nt.tag_id = t.id
       WHERE n.user_id = $1 AND n.is_archived = $2
     `;
@@ -91,8 +91,8 @@ router.get('/:id', async (req, res) => {
     const tags = await query(`
       SELECT t.* FROM tags t
       INNER JOIN note_tags nt ON t.id = nt.tag_id
-      WHERE nt.note_id = $1
-    `, [req.params.id]);
+      WHERE nt.note_id = $1 AND nt.user_id = $2
+    `, [req.params.id, req.user.id]);
 
     res.json({ ...note, tags });
   } catch (error) {
@@ -117,15 +117,15 @@ router.post('/', async (req, res) => {
     for (const tagName of tags) {
       if (!tagName.trim()) continue;
       
-      let tag = await queryOne('SELECT * FROM tags WHERE name = $1', [tagName.trim()]);
+      let tag = await queryOne('SELECT * FROM tags WHERE name = $1 AND user_id = $2', [tagName.trim(), req.user.id]);
       if (!tag) {
-        const tagResult = await db.query('INSERT INTO tags (name) VALUES ($1) RETURNING id', [tagName.trim()]);
+        const tagResult = await db.query('INSERT INTO tags (name, user_id) VALUES ($1, $2) RETURNING id', [tagName.trim(), req.user.id]);
         tag = { id: tagResult.rows[0].id, name: tagName.trim() };
       }
 
       await db.query(
-        'INSERT INTO note_tags (note_id, tag_id) VALUES ($1, $2) ON CONFLICT (note_id, tag_id) DO NOTHING',
-        [noteId, tag.id]
+        'INSERT INTO note_tags (note_id, tag_id, user_id) VALUES ($1, $2, $3) ON CONFLICT (note_id, tag_id) DO NOTHING',
+        [noteId, tag.id, req.user.id]
       );
     }
 
@@ -164,21 +164,21 @@ router.put('/:id', async (req, res) => {
     for (const tagName of tags) {
       if (!tagName.trim()) continue;
       
-      let tag = await queryOne('SELECT * FROM tags WHERE name = $1', [tagName.trim()]);
+      let tag = await queryOne('SELECT * FROM tags WHERE name = $1 AND user_id = $2', [tagName.trim(), req.user.id]);
       if (!tag) {
-        const tagResult = await db.query('INSERT INTO tags (name) VALUES ($1) RETURNING id', [tagName.trim()]);
+        const tagResult = await db.query('INSERT INTO tags (name, user_id) VALUES ($1, $2) RETURNING id', [tagName.trim(), req.user.id]);
         tag = { id: tagResult.rows[0].id, name: tagName.trim() };
       }
 
-      await db.query('INSERT INTO note_tags (note_id, tag_id) VALUES ($1, $2)', [req.params.id, tag.id]);
+      await db.query('INSERT INTO note_tags (note_id, tag_id, user_id) VALUES ($1, $2, $3)', [req.params.id, tag.id, req.user.id]);
     }
 
     const note = await queryOne('SELECT * FROM notes WHERE id = $1', [req.params.id]);
     const noteTags = await query(`
       SELECT t.* FROM tags t
       INNER JOIN note_tags nt ON t.id = nt.tag_id
-      WHERE nt.note_id = $1
-    `, [req.params.id]);
+      WHERE nt.note_id = $1 AND nt.user_id = $2
+    `, [req.params.id, req.user.id]);
 
     res.json({ ...note, tags: noteTags });
   } catch (error) {

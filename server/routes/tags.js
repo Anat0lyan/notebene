@@ -24,13 +24,12 @@ const queryOne = async (text, params) => {
 // Get all tags
 router.get('/', async (req, res) => {
   try {
-    // Get tags that are used by notes of the current user
+    // Get tags that belong to the current user
     const tags = await query(`
       SELECT t.id, t.name, t.color, t.created_at, COUNT(nt.note_id)::int as note_count
       FROM tags t
-      INNER JOIN note_tags nt ON t.id = nt.tag_id
-      INNER JOIN notes n ON nt.note_id = n.id
-      WHERE n.user_id = $1
+      LEFT JOIN note_tags nt ON t.id = nt.tag_id AND nt.user_id = $1
+      WHERE t.user_id = $1
       GROUP BY t.id, t.name, t.color, t.created_at
       ORDER BY t.name
     `, [req.user.id]);
@@ -47,12 +46,10 @@ router.put('/:id', async (req, res) => {
     const { name, color } = req.body;
     const db = getDb();
     
-    // Check if tag exists and is used by user's notes
+    // Check if tag exists and belongs to user
     const tagExists = await queryOne(`
       SELECT t.* FROM tags t
-      INNER JOIN note_tags nt ON t.id = nt.tag_id
-      INNER JOIN notes n ON nt.note_id = n.id
-      WHERE t.id = $1 AND n.user_id = $2
+      WHERE t.id = $1 AND t.user_id = $2
       LIMIT 1
     `, [req.params.id, req.user.id]);
     
@@ -64,9 +61,7 @@ router.put('/:id', async (req, res) => {
     if (name && name !== tagExists.name) {
       const conflictingTag = await queryOne(`
         SELECT t.* FROM tags t
-        INNER JOIN note_tags nt ON t.id = nt.tag_id
-        INNER JOIN notes n ON nt.note_id = n.id
-        WHERE t.name = $1 AND t.id != $2 AND n.user_id = $3
+        WHERE t.name = $1 AND t.id != $2 AND t.user_id = $3
         LIMIT 1
       `, [name, req.params.id, req.user.id]);
       if (conflictingTag) {
@@ -93,8 +88,8 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'No fields to update' });
     }
 
-    updateValues.push(req.params.id);
-    const queryText = `UPDATE tags SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`;
+    updateValues.push(req.params.id, req.user.id);
+    const queryText = `UPDATE tags SET ${updateFields.join(', ')} WHERE id = $${paramIndex} AND user_id = $${paramIndex + 1} RETURNING *`;
     
     const result = await db.query(queryText, updateValues);
     const updatedTag = result.rows[0];
@@ -103,9 +98,9 @@ router.put('/:id', async (req, res) => {
     const tagWithCount = await queryOne(`
       SELECT t.id, t.name, t.color, t.created_at, COUNT(nt.note_id)::int as note_count
       FROM tags t
-      INNER JOIN note_tags nt ON t.id = nt.tag_id
-      INNER JOIN notes n ON nt.note_id = n.id
-      WHERE t.id = $1 AND n.user_id = $2
+      LEFT JOIN note_tags nt ON t.id = nt.tag_id
+      LEFT JOIN notes n ON nt.note_id = n.id
+      WHERE t.id = $1 AND t.user_id = $2
       GROUP BY t.id, t.name, t.color, t.created_at
     `, [req.params.id, req.user.id]);
 
@@ -127,8 +122,14 @@ router.patch('/:id/color', async (req, res) => {
     const { color } = req.body;
     const db = getDb();
     
-    await db.query('UPDATE tags SET color = $1 WHERE id = $2', [color, req.params.id]);
-    const tag = await queryOne('SELECT * FROM tags WHERE id = $1', [req.params.id]);
+    // Check if tag belongs to user
+    const tagExists = await queryOne('SELECT * FROM tags WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    if (!tagExists) {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+    
+    await db.query('UPDATE tags SET color = $1 WHERE id = $2 AND user_id = $3', [color, req.params.id, req.user.id]);
+    const tag = await queryOne('SELECT * FROM tags WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     
     res.json(tag);
   } catch (error) {
@@ -141,12 +142,10 @@ router.delete('/:id', async (req, res) => {
   try {
     const db = getDb();
     
-    // Check if tag exists and is used by user's notes
+    // Check if tag exists and belongs to user
     const tagExists = await queryOne(`
       SELECT t.* FROM tags t
-      INNER JOIN note_tags nt ON t.id = nt.tag_id
-      INNER JOIN notes n ON nt.note_id = n.id
-      WHERE t.id = $1 AND n.user_id = $2
+      WHERE t.id = $1 AND t.user_id = $2
       LIMIT 1
     `, [req.params.id, req.user.id]);
     
@@ -155,7 +154,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Delete tag (note_tags will be deleted automatically due to CASCADE)
-    await db.query('DELETE FROM tags WHERE id = $1', [req.params.id]);
+    await db.query('DELETE FROM tags WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
     
     res.json({ message: 'Tag deleted successfully' });
   } catch (error) {
