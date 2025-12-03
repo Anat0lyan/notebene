@@ -16,18 +16,29 @@
       <div class="grid">
         <aside class="sidebar">
           <h3>Теги</h3>
+          <div class="tag-search">
+            <input
+              v-model="tagSearchQuery"
+              type="text"
+              placeholder="Поиск тегов..."
+              class="input tag-search-input"
+            />
+          </div>
           <ul class="sidebar-list">
-            <li
-              v-for="tag in tags"
+            <TagItem
+              v-for="tag in filteredTags"
               :key="tag.id"
-              class="sidebar-item"
-              :class="{ active: selectedTags.includes(tag.id) }"
-              @click="toggleTag(tag.id)"
-              :style="tag.color ? { borderLeft: `3px solid ${tag.color}` } : {}"
-            >
-              <span>{{ tag.name }} ({{ tag.note_count || 0 }})</span>
-            </li>
+              :tag="tag"
+              :is-selected="selectedTags.includes(tag.id)"
+              :search-query="tagSearchQuery"
+              @click="toggleTag"
+              @updated="handleTagUpdated"
+              @deleted="handleTagDeleted"
+            />
           </ul>
+          <div v-if="filteredTags.length === 0 && tagSearchQuery" class="no-tags-found">
+            <p>Теги не найдены</p>
+          </div>
           <button v-if="selectedTags.length > 0" @click="clearTagFilters" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">
             Сбросить фильтры
           </button>
@@ -105,15 +116,28 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useNotesStore } from '../stores/notes';
 import { useAuthStore } from '../stores/auth';
+import TagItem from '../components/TagItem.vue';
 
 const router = useRouter();
 const notesStore = useNotesStore();
 const authStore = useAuthStore();
 
 const searchQuery = ref('');
+const tagSearchQuery = ref('');
 const sortBy = ref('updated_at');
 
 const tags = computed(() => notesStore.tags);
+
+const filteredTags = computed(() => {
+  if (!tagSearchQuery.value.trim()) {
+    return tags.value;
+  }
+  
+  const query = tagSearchQuery.value.toLowerCase().trim();
+  return tags.value.filter(tag => 
+    tag.name.toLowerCase().includes(query)
+  );
+});
 const notes = computed(() => notesStore.notes);
 const filteredNotes = computed(() => notesStore.filteredNotes);
 const loading = computed(() => notesStore.loading);
@@ -181,6 +205,16 @@ const handleLogout = () => {
   notesStore.clearFilters();
   // Redirect to login page - use window.location for guaranteed redirect
   window.location.href = '/login';
+};
+
+const handleTagUpdated = async () => {
+  // Refresh notes to update tag names in note cards
+  await notesStore.fetchNotes();
+};
+
+const handleTagDeleted = async () => {
+  // Refresh notes after tag deletion
+  await notesStore.fetchNotes();
 };
 </script>
 
@@ -267,6 +301,23 @@ const handleLogout = () => {
   font-size: 12px;
   border-top: 1px solid #eee;
   padding-top: 8px;
+}
+
+.tag-search {
+  margin-bottom: 12px;
+}
+
+.tag-search-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.no-tags-found {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  font-size: 14px;
 }
 </style>
 

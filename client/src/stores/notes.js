@@ -156,6 +156,54 @@ export const useNotesStore = defineStore('notes', () => {
     selectedTags.value = [];
   };
 
+  const updateTag = async (id, tagData) => {
+    try {
+      const response = await api.put(`/tags/${id}`, tagData);
+      const index = tags.value.findIndex(t => t.id === id);
+      if (index !== -1) {
+        tags.value[index] = { ...tags.value[index], ...response.data };
+      }
+      
+      // Update tags in notes as well
+      notes.value.forEach(note => {
+        const tagIndex = note.tags.findIndex(t => t.id === id);
+        if (tagIndex !== -1) {
+          note.tags[tagIndex] = { ...note.tags[tagIndex], ...response.data };
+        }
+      });
+      
+      await fetchTags(); // Refresh tags to get updated counts
+      return response.data;
+    } catch (error) {
+      console.error('Error updating tag:', error);
+      throw error;
+    }
+  };
+
+  const deleteTag = async (id) => {
+    try {
+      await api.delete(`/tags/${id}`);
+      tags.value = tags.value.filter(t => t.id !== id);
+      
+      // Remove tag from selected filters if it was selected
+      const filterIndex = selectedTags.value.indexOf(id);
+      if (filterIndex !== -1) {
+        selectedTags.value.splice(filterIndex, 1);
+      }
+      
+      // Remove tag from notes locally
+      notes.value.forEach(note => {
+        note.tags = note.tags.filter(t => t.id !== id);
+      });
+      
+      await fetchNotes(); // Refresh notes to reflect tag removal
+      return true;
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      throw error;
+    }
+  };
+
   return {
     notes,
     tags,
@@ -176,7 +224,9 @@ export const useNotesStore = defineStore('notes', () => {
     setSearchQuery,
     toggleTagFilter,
     setSort,
-    clearFilters
+    clearFilters,
+    updateTag,
+    deleteTag
   };
 });
 
