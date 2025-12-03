@@ -166,17 +166,28 @@ export const useNotesStore = defineStore('notes', () => {
 
   const updateTag = async (id, tagData) => {
     try {
+      const existingTag = tags.value.find(t => t.id === id);
+      const existingNoteCount = existingTag?.note_count;
+      
       const response = await api.put(`/tags/${id}`, tagData);
       const index = tags.value.findIndex(t => t.id === id);
       if (index !== -1) {
-        tags.value[index] = { ...tags.value[index], ...response.data };
+        // Preserve note_count if not provided in response
+        const updatedTagData = {
+          ...response.data,
+          note_count: response.data.note_count !== undefined 
+            ? response.data.note_count 
+            : existingNoteCount
+        };
+        tags.value[index] = { ...tags.value[index], ...updatedTagData };
       }
       
-      // Update tags in notes as well
+      // Update tags in notes as well (exclude note_count as it's not part of note tags)
       notes.value.forEach(note => {
         const tagIndex = note.tags.findIndex(t => t.id === id);
         if (tagIndex !== -1) {
-          note.tags[tagIndex] = { ...note.tags[tagIndex], ...response.data };
+          const { note_count, ...tagDataWithoutCount } = response.data;
+          note.tags[tagIndex] = { ...note.tags[tagIndex], ...tagDataWithoutCount };
         }
       });
       

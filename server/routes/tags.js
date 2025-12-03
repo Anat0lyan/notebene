@@ -99,7 +99,23 @@ router.put('/:id', async (req, res) => {
     const result = await db.query(queryText, updateValues);
     const updatedTag = result.rows[0];
 
-    res.json(updatedTag);
+    // Get tag with note_count (consistent with GET endpoint)
+    const tagWithCount = await queryOne(`
+      SELECT t.id, t.name, t.color, t.created_at, COUNT(nt.note_id)::int as note_count
+      FROM tags t
+      INNER JOIN note_tags nt ON t.id = nt.tag_id
+      INNER JOIN notes n ON nt.note_id = n.id
+      WHERE t.id = $1 AND n.user_id = $2
+      GROUP BY t.id, t.name, t.color, t.created_at
+    `, [req.params.id, req.user.id]);
+
+    // Return tag with note_count, or fallback to updated tag with 0 count if no notes found
+    if (tagWithCount) {
+      res.json(tagWithCount);
+    } else {
+      // Tag exists but has no notes (shouldn't happen after our check, but handle it)
+      res.json({ ...updatedTag, note_count: 0 });
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
