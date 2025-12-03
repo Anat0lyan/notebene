@@ -170,7 +170,7 @@ const toggleTag = (tagId) => {
 };
 
 const clearTagFilters = () => {
-  notesStore.selectedTags = [];
+  notesStore.clearFilters();
   notesStore.fetchNotes();
 };
 
@@ -207,10 +207,8 @@ const formatDate = (dateString) => {
 
 const handleLogout = () => {
   authStore.logout();
-  // Clear notes data
-  notesStore.notes = [];
-  notesStore.tags = [];
-  notesStore.clearFilters();
+  // Clear all notes store data using proper store method
+  notesStore.clearAll();
   // Redirect to login page - use window.location for guaranteed redirect
   window.location.href = '/login';
 };

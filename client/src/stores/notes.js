@@ -156,6 +156,14 @@ export const useNotesStore = defineStore('notes', () => {
     selectedTags.value = [];
   };
 
+  const clearAll = () => {
+    notes.value = [];
+    tags.value = [];
+    searchQuery.value = '';
+    selectedTags.value = [];
+    loading.value = false;
+  };
+
   const updateTag = async (id, tagData) => {
     try {
       const response = await api.put(`/tags/${id}`, tagData);
@@ -225,6 +233,7 @@ export const useNotesStore = defineStore('notes', () => {
     toggleTagFilter,
     setSort,
     clearFilters,
+    clearAll,
     updateTag,
     deleteTag
   };
