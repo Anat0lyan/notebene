@@ -86,6 +86,42 @@ export const initDatabase = async () => {
       CREATE INDEX IF NOT EXISTS idx_note_tags_tag_id ON note_tags(tag_id);
     `);
 
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        completed BOOLEAN DEFAULT FALSE,
+        due_date TIMESTAMP,
+        priority VARCHAR(20) DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
+        note_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        recurring_type VARCHAR(20) DEFAULT 'none' CHECK (recurring_type IN ('none', 'daily', 'weekly', 'monthly')),
+        recurring_interval INTEGER DEFAULT 1,
+        reminder TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE SET NULL
+      )
+    `);
+
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
+    `);
+
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_tasks_completed ON tasks(completed);
+    `);
+
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
+    `);
+
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_tasks_note_id ON tasks(note_id);
+    `);
+
     // Create default user for testing (password: admin)
     const existingUser = await db.query('SELECT * FROM users WHERE username = $1', ['admin']);
     if (existingUser.rows.length === 0) {

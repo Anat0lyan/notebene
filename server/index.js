@@ -5,6 +5,7 @@ import { initDatabase } from './config/database.js';
 import notesRoutes from './routes/notes.js';
 import tagsRoutes from './routes/tags.js';
 import authRoutes from './routes/auth.js';
+import tasksRoutes from './routes/tasks.js';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ await initDatabase();
 app.use('/api/auth', authRoutes);
 app.use('/api/notes', notesRoutes);
 app.use('/api/tags', tagsRoutes);
+app.use('/api/tasks', tasksRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

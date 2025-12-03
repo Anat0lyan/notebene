@@ -40,6 +40,8 @@
           <div class="note-body">
             <pre>{{ note.content || 'Нет содержимого' }}</pre>
           </div>
+
+          <NoteTasks v-if="note" :note-id="note.id" />
         </article>
       </div>
       
@@ -52,6 +54,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useNotesStore } from '../stores/notes';
+import NoteTasks from '../components/NoteTasks.vue';
 
 const route = useRoute();
 const router = useRouter();

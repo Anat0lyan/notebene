@@ -4,6 +4,7 @@ import Login from '../views/Login.vue';
 import Notes from '../views/Notes.vue';
 import NoteDetail from '../views/NoteDetail.vue';
 import NoteEdit from '../views/NoteEdit.vue';
+import Dashboard from '../views/Dashboard.vue';
 
 const routes = [
   {
@@ -15,6 +16,12 @@ const routes = [
     path: '/',
     name: 'Notes',
     component: Notes,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: Dashboard,
     meta: { requiresAuth: true }
   },
   {

@@ -1,6 +1,7 @@
 <template>
   <div class="notes-page">
     <div class="container">
+      <Navigation />
       <header class="page-header">
         <h1>Мои заметки</h1>
         <div class="header-actions">
@@ -119,6 +120,7 @@ import { useNotesStore } from '../stores/notes';
 import { useAuthStore } from '../stores/auth';
 import TagItem from '../components/TagItem.vue';
 import Dropdown from '../components/Dropdown.vue';
+import Navigation from '../components/Navigation.vue';
 
 const router = useRouter();
 const notesStore = useNotesStore();
