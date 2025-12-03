@@ -9,7 +9,7 @@
             <option value="created_at">По дате создания</option>
             <option value="title">По алфавиту</option>
           </select>
-          <button @click="authStore.logout()" class="btn btn-secondary">Выйти</button>
+          <button @click="handleLogout" class="btn btn-secondary">Выйти</button>
         </div>
       </header>
 
@@ -171,6 +171,16 @@ const formatDate = (dateString) => {
     hour: '2-digit',
     minute: '2-digit'
   });
+};
+
+const handleLogout = () => {
+  authStore.logout();
+  // Clear notes data
+  notesStore.notes = [];
+  notesStore.tags = [];
+  notesStore.clearFilters();
+  // Redirect to login page - use window.location for guaranteed redirect
+  window.location.href = '/login';
 };
 </script>
 
