@@ -4,11 +4,12 @@
       <header class="page-header">
         <h1>Мои заметки</h1>
         <div class="header-actions">
-          <select v-model="sortBy" @change="handleSortChange" class="input" style="width: auto; margin-right: 10px;">
-            <option value="updated_at">По дате изменения</option>
-            <option value="created_at">По дате создания</option>
-            <option value="title">По алфавиту</option>
-          </select>
+          <Dropdown
+            v-model="sortBy"
+            :options="sortOptions"
+            @change="handleSortChange"
+            style="margin-right: 10px;"
+          />
           <button @click="handleLogout" class="btn btn-secondary">Выйти</button>
         </div>
       </header>
@@ -117,6 +118,7 @@ import { useRouter } from 'vue-router';
 import { useNotesStore } from '../stores/notes';
 import { useAuthStore } from '../stores/auth';
 import TagItem from '../components/TagItem.vue';
+import Dropdown from '../components/Dropdown.vue';
 
 const router = useRouter();
 const notesStore = useNotesStore();
@@ -125,6 +127,12 @@ const authStore = useAuthStore();
 const searchQuery = ref('');
 const tagSearchQuery = ref('');
 const sortBy = ref('updated_at');
+
+const sortOptions = [
+  { value: 'updated_at', label: 'По дате изменения' },
+  { value: 'created_at', label: 'По дате создания' },
+  { value: 'title', label: 'По алфавиту' }
+];
 
 const tags = computed(() => notesStore.tags);
 
