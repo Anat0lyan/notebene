@@ -1,0 +1,133 @@
+# Notabene - Система управления заметками
+
+Веб-приложение для управления заметками с тегами, поиском и фильтрацией.
+
+## Технологии
+
+- **Frontend**: Vue 3 (Composition API), Vue Router, Pinia, Vite
+- **Backend**: Express.js, Node.js
+- **База данных**: PostgreSQL
+- **Аутентификация**: JWT токены
+
+## Установка
+
+### Требования
+
+- Node.js (v16 или выше)
+- PostgreSQL (v12 или выше)
+
+### Настройка базы данных PostgreSQL
+
+1. Установите PostgreSQL, если еще не установлен:
+   ```bash
+   # macOS (Homebrew)
+   brew install postgresql
+   brew services start postgresql
+   
+   # Ubuntu/Debian
+   sudo apt-get install postgresql postgresql-contrib
+   sudo systemctl start postgresql
+   ```
+
+2. Создайте базу данных:
+   ```bash
+   # Войдите в PostgreSQL
+   psql -U postgres
+   
+   # Создайте базу данных
+   CREATE DATABASE notabene;
+   
+   # Выйдите из psql
+   \q
+   ```
+
+3. Создайте файл `.env` в директории `server/` со следующим содержимым:
+   ```env
+   PORT=3000
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=notabene
+   DB_USER=postgres
+   DB_PASSWORD=your_password
+   JWT_SECRET=your-secret-key-change-in-production
+   ```
+   
+   Замените `your_password` на ваш пароль PostgreSQL и `your-secret-key-change-in-production` на случайную строку для JWT.
+
+### Backend
+
+```bash
+cd server
+npm install
+npm run dev
+```
+
+Сервер запустится на порту 3000. База данных будет автоматически инициализирована при первом запуске.
+
+### Frontend
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Приложение откроется на http://localhost:5173
+
+**Важно:** Убедитесь, что backend сервер запущен на порту 3000 перед запуском frontend.
+
+### Проверка подключения
+
+После запуска обоих серверов, вы можете проверить подключение:
+
+1. Откройте консоль браузера (F12)
+2. Проверьте, что запросы идут на `/api/*`
+3. Если видите ошибки подключения, проверьте:
+   - Запущен ли backend сервер на порту 3000
+   - Правильно ли настроены переменные окружения в `server/.env`
+   - Работает ли база данных PostgreSQL
+
+### Если прокси не работает
+
+Если запросы не проксируются через Vite, вы можете настроить прямой доступ к API:
+
+1. Создайте файл `client/.env.local`:
+   ```env
+   VITE_API_BASE_URL=http://localhost:3000/api
+   ```
+
+2. Перезапустите dev сервер Vite
+
+## Использование
+
+### Тестовый аккаунт
+- **Логин**: admin
+- **Пароль**: admin
+
+### Функционал
+
+- ✅ CRUD операции для заметок
+- ✅ Управление тегами (создание "на лету")
+- ✅ Поиск по тексту
+- ✅ Фильтрация по тегам
+- ✅ Сортировка заметок (по дате, алфавиту)
+- ✅ Избранное
+- ✅ Архивация
+
+## Структура проекта
+
+```
+├── client/          # Vue.js фронтенд
+│   ├── src/
+│   │   ├── components/
+│   │   ├── views/
+│   │   ├── stores/
+│   │   ├── router/
+│   │   └── services/
+├── server/          # Express.js бэкенд
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   └── config/
+```
+
