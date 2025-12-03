@@ -19,7 +19,8 @@ const PORT: number = parseInt(process.env.PORT || '3000', 10);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Path to client/dist (relative to compiled dist folder)
-const clientDistPath = path.resolve(__dirname, '..', 'client', 'dist');
+// When compiled, __dirname is server/dist/, so we go up to project root, then to client/dist
+const clientDistPath = path.resolve(__dirname, '..', '..', 'client', 'dist');
 
 // Middleware
 app.use(cors({
