@@ -30,3 +30,5 @@ echo ""
 echo "Или установите переменную окружения SERVE_STATIC=true для отдачи статики:"
 echo "  SERVE_STATIC=true npm start"
 
+
+

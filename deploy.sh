@@ -26,3 +26,5 @@ npm run build
 echo "🚀 Запускаем сервер..."
 NODE_ENV=production npm start
 
+
+

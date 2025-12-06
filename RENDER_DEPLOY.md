@@ -48,3 +48,5 @@ cd client && npm install && npm run build && cd ../server && npm install --produ
 1. API: `curl https://your-app.onrender.com/api/health`
 2. Frontend: Откройте `https://your-app.onrender.com` в браузере
 
+
+
