@@ -7,9 +7,9 @@
       <form @submit.prevent="handleSubmit" class="login-form">
         <div class="form-group">
           <input
-            v-model="username"
-            type="text"
-            placeholder="Имя пользователя"
+            v-model="email"
+            type="email"
+            placeholder="Email"
             class="input"
             required
           />
@@ -38,9 +38,7 @@
       </form>
       
       <div class="demo-info">
-        <p>Для тестирования используйте:</p>
-        <p><strong>Логин:</strong> admin</p>
-        <p><strong>Пароль:</strong> admin</p>
+        <p>Для тестирования создайте аккаунт с email и паролем</p>
       </div>
     </div>
   </div>
@@ -54,7 +52,7 @@ import { useAuthStore } from '../stores/auth';
 const router = useRouter();
 const authStore = useAuthStore();
 
-const username = ref('');
+const email = ref('');
 const password = ref('');
 const isRegister = ref(false);
 const loading = ref(false);
@@ -66,8 +64,8 @@ const handleSubmit = async () => {
   
   try {
     const result = isRegister.value
-      ? await authStore.register(username.value, password.value)
-      : await authStore.login(username.value, password.value);
+      ? await authStore.register(email.value, password.value)
+      : await authStore.login(email.value, password.value);
     
     if (result.success) {
       router.push('/');

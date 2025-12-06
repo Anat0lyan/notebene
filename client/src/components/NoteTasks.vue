@@ -55,11 +55,12 @@ import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTasksStore } from '../stores/tasks';
 import TaskForm from './TaskForm.vue';
-import api from '../services/api';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 const props = defineProps({
   noteId: {
-    type: Number,
+    type: String,
     required: true
   }
 });
@@ -96,8 +97,40 @@ const formatDate = (dateString) => {
 const fetchTasks = async () => {
   loading.value = true;
   try {
-    const response = await api.get(`/tasks/by-note/${props.noteId}`);
-    tasks.value = response.data;
+    const tasksRef = collection(db, 'tasks');
+    const q = query(
+      tasksRef,
+      where('noteId', '==', props.noteId)
+    );
+    
+    const snapshot = await getDocs(q);
+    const tasksData = [];
+    
+    for (const docSnap of snapshot.docs) {
+      const taskData = { id: docSnap.id, ...docSnap.data() };
+      
+      // Convert Firestore timestamps
+      if (taskData.createdAt) {
+        taskData.created_at = taskData.createdAt.toDate ? taskData.createdAt.toDate().toISOString() : taskData.createdAt;
+      }
+      if (taskData.updatedAt) {
+        taskData.updated_at = taskData.updatedAt.toDate ? taskData.updatedAt.toDate().toISOString() : taskData.updatedAt;
+      }
+      if (taskData.dueDate) {
+        taskData.due_date = taskData.dueDate.toDate ? taskData.dueDate.toDate().toISOString() : taskData.dueDate;
+      }
+      
+      tasksData.push(taskData);
+    }
+    
+    // Sort by due date
+    tasksData.sort((a, b) => {
+      const aDate = a.due_date ? new Date(a.due_date).getTime() : 0;
+      const bDate = b.due_date ? new Date(b.due_date).getTime() : 0;
+      return aDate - bDate;
+    });
+    
+    tasks.value = tasksData;
   } catch (error) {
     console.error('Error fetching tasks:', error);
   } finally {

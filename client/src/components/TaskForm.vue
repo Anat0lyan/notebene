@@ -81,7 +81,7 @@ const props = defineProps({
     default: null
   },
   initialNoteId: {
-    type: Number,
+    type: String,
     default: null
   }
 });
@@ -110,7 +110,7 @@ onMounted(async () => {
       description: props.task.description || '',
       dueDate: props.task.due_date ? formatDateTimeLocal(props.task.due_date) : '',
       priority: props.task.priority || 'medium',
-      noteId: props.task.note_id || null
+      noteId: props.task.noteId || props.task.note_id || null
     };
   } else if (props.initialNoteId) {
     form.value.noteId = props.initialNoteId;

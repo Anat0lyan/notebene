@@ -2,7 +2,20 @@
 
 Веб-приложение для управления заметками с тегами, поиском и фильтрацией.
 
-## Технологии
+## ⚠️ Миграция на Firebase
+
+**Приложение было переписано для работы с Firebase!**
+
+Теперь используется:
+- **Firebase Authentication** для аутентификации (email/password)
+- **Firestore** для хранения данных
+- **Firebase Hosting** для деплоя
+
+**Для деплоя на Firebase см. [QUICK_START_FIREBASE.md](./QUICK_START_FIREBASE.md) или [FIREBASE_DEPLOY.md](./FIREBASE_DEPLOY.md)**
+
+---
+
+## Технологии (старая версия с PostgreSQL)
 
 - **Frontend**: Vue 3 (Composition API), Vue Router, Pinia, Vite
 - **Backend**: Express.js, Node.js

@@ -1,18 +1,19 @@
 // Database Models
 export interface User {
-  id: number;
-  username: string;
+  id: string;
+  email: string;
+  username?: string;
 }
 
 export interface Tag {
-  id: number;
+  id: string;
   name: string;
   color?: string | null;
   note_count?: number;
 }
 
 export interface Note {
-  id: number;
+  id: string;
   title: string;
   content?: string | null;
   created_at: string;
@@ -23,13 +24,14 @@ export interface Note {
 }
 
 export interface Task {
-  id: number;
+  id: string;
   title: string;
   description?: string | null;
   completed: boolean;
   due_date?: string | null;
   priority: 'low' | 'medium' | 'high';
-  note_id?: number | null;
+  noteId?: string | null;
+  note_id?: string | null; // Legacy support
   note_title?: string | null;
 }
 
@@ -69,7 +71,7 @@ export interface CreateTaskRequest {
   description?: string;
   dueDate?: string;
   priority?: 'low' | 'medium' | 'high';
-  noteId?: number | null;
+  noteId?: string | null;
 }
 
 export interface UpdateTaskRequest {
@@ -77,7 +79,7 @@ export interface UpdateTaskRequest {
   description?: string;
   dueDate?: string;
   priority?: 'low' | 'medium' | 'high';
-  noteId?: number | null;
+  noteId?: string | null;
 }
 
 // Sort options

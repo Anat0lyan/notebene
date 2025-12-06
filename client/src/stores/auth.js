@@ -1,62 +1,86 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import api from '../services/api';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth';
+import { auth } from '../config/firebase';
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('token') || null);
   const user = ref(null);
+  const loading = ref(false);
 
-  const setToken = (newToken) => {
-    token.value = newToken;
-    if (newToken) {
-      localStorage.setItem('token', newToken);
-      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+  // Initialize auth state listener
+  onAuthStateChanged(auth, (firebaseUser) => {
+    if (firebaseUser) {
+      user.value = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email,
+        username: firebaseUser.email?.split('@')[0] || firebaseUser.uid
+      };
     } else {
-      localStorage.removeItem('token');
-      delete api.defaults.headers.common['Authorization'];
+      user.value = null;
     }
-  };
+  });
 
-  const setUser = (userData) => {
-    user.value = userData;
-  };
-
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
-      const response = await api.post('/auth/login', { username, password });
-      setToken(response.data.token);
-      setUser(response.data.user);
-      return { success: true };
+      loading.value = true;
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      return { success: true, user: userCredential.user };
     } catch (error) {
-      return { success: false, error: error.response?.data?.error || 'Ошибка входа' };
+      let errorMessage = 'Ошибка входа';
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'Пользователь не найден';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Неверный пароль';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Неверный email';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Слишком много попыток. Попробуйте позже';
+      }
+      return { success: false, error: errorMessage };
+    } finally {
+      loading.value = false;
     }
   };
 
-  const register = async (username, password) => {
+  const register = async (email, password) => {
     try {
-      const response = await api.post('/auth/register', { username, password });
-      setToken(response.data.token);
-      setUser(response.data.user);
-      return { success: true };
+      loading.value = true;
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      return { success: true, user: userCredential.user };
     } catch (error) {
-      return { success: false, error: error.response?.data?.error || 'Ошибка регистрации' };
+      let errorMessage = 'Ошибка регистрации';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Email уже используется';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Неверный email';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Пароль слишком слабый';
+      }
+      return { success: false, error: errorMessage };
+    } finally {
+      loading.value = false;
     }
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      user.value = null;
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   };
 
   return {
-    token,
     user,
-    setToken,
-    setUser,
+    loading,
     login,
     register,
     logout
   };
 });
-
-
